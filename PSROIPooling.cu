@@ -21,12 +21,6 @@ __global__ void PSROIPoolingForward(
     Dtype* top_data,
     int* mapping_channel) {
 
-    // DEBUG
-    //printf("[INIT c1=%.2f,c2=%.2f,c3=%.2f,c4=%.2f,c5=%.2f]\n", bottom_rois[0], bottom_rois[1], bottom_rois[2], bottom_rois[3], bottom_rois[4]);
-
-    // DEBUG
-    //printf("[INIT-DATA c1=%.2f,c2=%.2f,c3=%.2f,c4=%.2f,c5=%.2f]\n", bottom_data[0], bottom_data[1], bottom_data[2], bottom_data[3], bottom_data[4]);
-
     CUDA_KERNEL_LOOP(index, nthreads){
       // The output is in order (n, ctop, ph, pw)
       int pw = index % pooled_width;
@@ -36,12 +30,6 @@ __global__ void PSROIPoolingForward(
 
       // [start, end) interval for spatial sampling
       bottom_rois += n * 5;
-      
-      // DEBUG
-      //printf("[c1=%.2f,c2=%.2f,c3=%.2f,c4=%.2f,c5=%.2f]\n", bottom_rois[0], bottom_rois[1], bottom_rois[2], bottom_rois[3], bottom_rois[4]);
-
-      // DEBUG
-      //printf("spatial_scale=%.3f\n", spatial_scale);
 
       int roi_batch_ind = bottom_rois[0] - 1; // -1 is due to the Lua/C conversion
       //Dtype roi_start_w = static_cast<Dtype>(round(bottom_rois[1])) * spatial_scale;
@@ -53,9 +41,6 @@ __global__ void PSROIPoolingForward(
       Dtype roi_end_w = static_cast<Dtype>(bottom_rois[3] + 1.) * spatial_scale;
       Dtype roi_end_h = static_cast<Dtype>(bottom_rois[4] + 1.) * spatial_scale;
       bool roi_is_empty = (roi_end_h <= roi_start_h) || (roi_end_w <= roi_start_w);
-
-      // DEBUG
-      //printf("[hs=%.2f,ws=%.2f,he=%.2f,we=%.2f]\n", roi_start_h, roi_start_w, roi_end_h, roi_end_w);
 
       // Force too small ROIs to be 1x1
       Dtype roi_width = max(roi_end_w - roi_start_w, 0.1); //avoid 0
@@ -79,10 +64,6 @@ __global__ void PSROIPoolingForward(
       wend = min(max(wend, 0), width);
       bool is_empty = roi_is_empty || (hend <= hstart) || (wend <= wstart);
 
-
-      // DEBUG
-      //printf("[%d,%d,%d,%d]\n", wstart+1, hstart+1, wend, hend);
-
       int gw = pw;
       int gh = ph;
       int c = ctop * pooled_width * pooled_height + gh * pooled_width + gw; 
@@ -96,13 +77,6 @@ __global__ void PSROIPoolingForward(
         }
       }
 
-      // DEBUG
-      //if (is_empty) {
-      //  printf("empty\n");
-      //} else {
-      //  printf("non-empty\n");
-      //}
-
       Dtype bin_area = (hend - hstart)*(wend - wstart);
       top_data[index] = is_empty? 0. : out_sum/bin_area;
       mapping_channel[index] = c;
@@ -114,16 +88,6 @@ __global__ void PSROIPoolingForward(
 extern "C"
 void PSROIPooling_updateOutput(THCState *state, THCudaTensor *output, THCudaTensor *indices, THCudaTensor *data, THCudaTensor* rois, int height, int width, int pooled_height, int pooled_width, int output_dim, double spatial_scale)
 {
-  
-  // DEBUG
-  //printf("PSROIPooling_updateOutput, spatial_scale=%.3f\n", spatial_scale);
-  //printf("PSROIPooling_updateOutput, height=%d\n", height);
-  //printf("PSROIPooling_updateOutput, width=%d\n", width);
-  //printf("PSROIPooling_updateOutput, pooled_height=%d\n", pooled_height);
-  //printf("PSROIPooling_updateOutput, pooled_width=%d\n", pooled_width);
-  //printf("PSROIPooling_updateOutput, output_dim=%d\n", output_dim);
-
-
   THAssert(THCudaTensor_nDimension(state, data) == 4);
   THAssert(THCudaTensor_nDimension(state, rois) == 2 && rois->size[1] == 5);
   THAssert(THCudaTensor_isContiguous(state, data));
