@@ -32,10 +32,6 @@ __global__ void PSROIPoolingForward(
       bottom_rois += n * 5;
 
       int roi_batch_ind = bottom_rois[0] - 1; // -1 is due to the Lua/C conversion
-      //Dtype roi_start_w = static_cast<Dtype>(round(bottom_rois[1])) * spatial_scale;
-      //Dtype roi_start_h = static_cast<Dtype>(round(bottom_rois[2])) * spatial_scale;
-      //Dtype roi_end_w = static_cast<Dtype>(round(bottom_rois[3]) + 1.) * spatial_scale;
-      //Dtype roi_end_h = static_cast<Dtype>(round(bottom_rois[4]) + 1.) * spatial_scale;
       Dtype roi_start_w = bottom_rois[1] * spatial_scale;
       Dtype roi_start_h = bottom_rois[2] * spatial_scale;
       Dtype roi_end_w = static_cast<Dtype>(bottom_rois[3] + 1.) * spatial_scale;
@@ -133,10 +129,6 @@ __global__ void PSROIPoolingBackwardAtomic(
     // [start, end) interval for spatial sampling
     bottom_rois += n * 5;
     int roi_batch_ind = bottom_rois[0] - 1; // -1 is due to the Lua/C conversion
-    //Dtype roi_start_w = static_cast<Dtype>(round(bottom_rois[1])) * spatial_scale;
-    //Dtype roi_start_h = static_cast<Dtype>(round(bottom_rois[2])) * spatial_scale;
-    //Dtype roi_end_w = static_cast<Dtype>(round(bottom_rois[3]) + 1.) * spatial_scale;
-    //Dtype roi_end_h = static_cast<Dtype>(round(bottom_rois[4]) + 1.) * spatial_scale;
     Dtype roi_start_w = bottom_rois[1] * spatial_scale;
     Dtype roi_start_h = bottom_rois[2] * spatial_scale;
     Dtype roi_end_w = static_cast<Dtype>(bottom_rois[3] + 1.) * spatial_scale;
